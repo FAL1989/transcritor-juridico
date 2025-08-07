@@ -3,13 +3,13 @@
 ## 🚀 Alta Prioridade
 
 ### Autenticação e Segurança
-- [ ] Implementar sistema de autenticação JWT
-- [ ] Criar endpoints de registro e login de usuários
-- [ ] Adicionar refresh tokens
+- [x] Implementar sistema de autenticação JWT
+- [x] Criar endpoints de registro e login de usuários
+- [x] Adicionar refresh tokens
 - [ ] Implementar recuperação de senha
 - [ ] Implementar pseudonimização de dados para LGPD
 
-### Upload e Processamento
+### Upload e Processamento (Sprint 2)
 - [ ] Implementar upload de arquivos de áudio/vídeo
 - [ ] Validar formatos de arquivo (mp3, wav, m4a, ogg, flac, mp4, avi, mov)
 - [ ] Adicionar barra de progresso de upload
@@ -49,7 +49,8 @@
 
 ### Testes
 - [ ] Criar testes unitários para o backend (pytest)
-- [ ] Criar testes de integração para APIs
+- [x] Criar testes de integração para APIs (auth)
+- [ ] Executar testes no CI/CD
 - [ ] Implementar testes E2E no frontend
 - [ ] Atingir cobertura de código > 80%
 
