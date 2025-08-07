@@ -48,7 +48,7 @@ class TokenData(BaseModel):
 
 
 class UserResponse(UserBase):
-    id: str
+    id: int
     is_active: bool = True
     created_at: datetime
     updated_at: Optional[datetime] = None
