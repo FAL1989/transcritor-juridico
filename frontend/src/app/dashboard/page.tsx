@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api, type UserResponse } from '@/lib/api/client';
 import Link from 'next/link';
+import { TranscriptionsClient } from './transcriptions/TranscriptionsClient';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserResponse | null>(null);
@@ -33,13 +34,12 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        {user ? (
-          <p className="mt-2 text-gray-700">Bem-vindo(a), {user.full_name}</p>
-        ) : (
-          <p className="mt-2 text-gray-500">Carregando...</p>
-        )}
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+          {user && <span className="text-gray-700">{user.full_name}</span>}
+        </div>
+        <TranscriptionsClient />
       </div>
     </main>
   );
