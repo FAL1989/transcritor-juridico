@@ -1,0 +1,63 @@
+{
+  "commands": {
+    "allowed": [
+      "npm run dev",
+      "npm run build", 
+      "npm run start",
+      "npm run lint",
+      "npm run test",
+      "npm run test:run",
+      "npm run test:coverage",
+      "npm run typecheck",
+      "git status",
+      "git diff",
+      "git log --oneline -10",
+      "ls -la",
+      "pwd",
+      "cat package.json",
+      "npx tsc --noEmit",
+      "npx eslint . --ext .ts,.tsx,.js,.jsx",
+      "npx prettier --check .",
+      "tree -I node_modules -L 3"
+    ],
+    "restricted": [
+      "npm install",
+      "npm uninstall", 
+      "npm update",
+      "yarn install",
+      "yarn add",
+      "yarn remove",
+      "pnpm install",
+      "pnpm add",
+      "pnpm remove",
+      "git add",
+      "git commit",
+      "git push",
+      "git pull",
+      "git merge",
+      "git checkout",
+      "git branch",
+      "git reset",
+      "rm -rf",
+      "sudo",
+      "chmod",
+      "chown",
+      "mv",
+      "cp -r",
+      "mkdir -p",
+      "touch",
+      "echo >",
+      "npx create-next-app",
+      "npx shadcn-ui",
+      "docker",
+      "kubectl",
+      "terraform",
+      "vercel",
+      "netlify"
+    ],
+    "notes": {
+      "allowed_commands": "Comandos seguros para desenvolvimento, teste e verificação de código que não modificam arquivos ou dependências",
+      "restricted_commands": "Comandos que modificam arquivos, instalam/removem dependências, ou fazem alterações no sistema/git. Sempre pedir confirmação antes de executar"
+    }
+  }
+}
