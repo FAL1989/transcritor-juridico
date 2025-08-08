@@ -30,7 +30,11 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const api = {
-  async register(input: { email: string; full_name: string; password: string }): Promise<UserResponse> {
+  async register(input: {
+    email: string;
+    full_name: string;
+    password: string;
+  }): Promise<UserResponse> {
     const res = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
