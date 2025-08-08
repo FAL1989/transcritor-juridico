@@ -6,15 +6,15 @@ Sistema profissional de transcrição para o setor jurídico, com suporte para t
 
 ### Backend
 - **Python 3.11** com **FastAPI**
-- **Supabase** (PostgreSQL + Auth + Storage)
-- **pgvector** para embeddings e busca semântica
+- **PostgreSQL** (SQLAlchemy Async)
+- **pgvector** (planejado) para embeddings e busca semântica
 - **Redis** para cache e filas
 - **Whisper AI** para transcrição
 - **Azure OpenAI** (GPT-4o mini) para processamento de texto
 
 ### Frontend
 - **Next.js 14** com TypeScript
-- **Supabase Client** para auth e dados
+- **JWT** para auth (frontend consumindo API)
 - **React Query** para gerenciamento de estado
 - **Tailwind CSS** para estilização
 - **React Hook Form** + **Zod** para formulários
@@ -192,7 +192,7 @@ transcritor-juridico/
 
 ## 📊 Status do Projeto
 
-**Estado Atual**: MVP em desenvolvimento - Banco de dados criado no Supabase ✅
+**Estado Atual**: MVP em desenvolvimento - API e modelos iniciais com PostgreSQL local ✅
 
 ### O que está pronto:
 - ✅ Estrutura completa do projeto (Backend + Frontend)
@@ -202,16 +202,12 @@ transcritor-juridico/
 - ✅ Configurações de desenvolvimento (ESLint, Prettier, Black)
 - ✅ Estrutura de testes configurada
 - ✅ CI/CD básico com GitHub Actions
-- ✅ **Banco de dados Supabase criado com todas as tabelas**
-- ✅ **pgvector habilitado para embeddings**
-- ✅ **RLS (Row Level Security) configurado**
-- ✅ **Template de voto para tráfico de drogas**
+- ✅ **Autenticação JWT (register/login/refresh/me)**
+- ✅ **Modelos iniciais (User, Transcription, Segment)**
+- ✅ **Docker Compose com Postgres/Redis/Backend/Frontend**
+- ⏳ **Alembic migrations** (em progresso)
+- ⏳ **Whisper integração** (planejado)
 
-### Banco de Dados Supabase:
-- **Projeto**: Transcritor Jurídico
-- **ID**: eyrrkkopkaaszrynphpm
-- **URL**: https://eyrrkkopkaaszrynphpm.supabase.co
-- **Região**: sa-east-1 (São Paulo)
 
 ### Tabelas Criadas:
 1. **transcriptions** - Transcrições principais com metadados jurídicos
@@ -239,6 +235,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ## 📚 Documentação Adicional
 
 - [Documentação da API](http://localhost:8000/api/v1/docs)
+- [Guia do MVP](docs/MVP_GUIDE.md)
 - [Estrutura do Banco de Dados](DATABASE.md)
 - [Lista de Tarefas](TODO.md)
 - [Guia de Deploy](DEPLOYMENT.md)

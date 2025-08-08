@@ -1,0 +1,17 @@
+---
+globs: backend/**/*.py
+---
+# Regras Backend (FastAPI/SQLAlchemy Async)
+
+- Prefira `async def` em endpoints e serviços; use `Depends(get_db)` para sessão `AsyncSession`.
+- Configure CORS via `settings.BACKEND_CORS_ORIGINS`; não hardcode `*` exceto em dev controlado.
+- JWT: mantenha tipos `type: "access"|"refresh"` no payload; subject `sub` deve ser `str(user.id)`.
+- Pydantic v2: use `model_validate(...)` e `Config.from_attributes = True` nos schemas de resposta.
+- Banco: evite `Base.metadata.create_all` em produção; padronize migrações com Alembic.
+- Transações: `get_db()` deve `commit/rollback` adequadamente e fechar a sessão.
+- Uploads de arquivo: valide extensão (`settings.ALLOWED_AUDIO_EXTENSIONS`) e tamanho (`MAX_UPLOAD_SIZE`); nomeie de forma única; preferir `aiofiles` para IO assíncrono quando viável.
+- Erros: levante `HTTPException` com `status_code` adequado; normalize mensagens em `detail`.
+- Segurança: nunca armazene senha em claro; use `passlib` (bcrypt); `SECRET_KEY` deve vir de env.
+- Logging: use logs estruturados; evite prints; não logue dados sensíveis.
+- Organização: mantenha queries no nível de serviço (`app/services/`) e endpoints finos.
+- Testes: use `pytest-asyncio` e `httpx.AsyncClient`; isole DB de teste e limpe artefatos.

@@ -1,0 +1,9 @@
+{
+  email {$ACME_EMAIL}
+}
+
+{$PUBLIC_HOST} {
+  encode gzip
+  log
+  reverse_proxy backend:8000
+}

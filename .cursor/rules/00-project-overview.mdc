@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+---
+# Guia de Estrutura e Navegação (Cursor Rules)
+
+Estas regras orientam o Cursor sobre como entender e editar este repositório. Mantenha a comunicação e os exemplos em Português.
+
+## Pontos de Entrada e Estrutura
+- Backend (FastAPI):
+  - App e registro de rotas: [backend/app/main.py](mdc:backend/app/main.py)
+  - Agregador de rotas: [backend/app/api/__init__.py](mdc:backend/app/api/__init__.py)
+  - Configurações: [backend/app/core/config.py](mdc:backend/app/core/config.py)
+  - Banco de dados (engine/sessão): [backend/app/core/database.py](mdc:backend/app/core/database.py)
+  - Modelos: [backend/app/models/user.py](mdc:backend/app/models/user.py), [backend/app/models/transcription.py](mdc:backend/app/models/transcription.py)
+  - Schemas: [backend/app/schemas/auth.py](mdc:backend/app/schemas/auth.py), [backend/app/schemas/transcription.py](mdc:backend/app/schemas/transcription.py)
+  - Rotas: Auth [backend/app/api/auth.py](mdc:backend/app/api/auth.py); Transcrições [backend/app/api/transcriptions.py](mdc:backend/app/api/transcriptions.py)
+
+- Frontend (Next.js 14 / App Router):
+  - Páginas: login [frontend/src/app/auth/login/page.tsx](mdc:frontend/src/app/auth/login/page.tsx), registro [frontend/src/app/auth/register/page.tsx](mdc:frontend/src/app/auth/register/page.tsx), dashboard [frontend/src/app/dashboard/page.tsx](mdc:frontend/src/app/dashboard/page.tsx)
+  - Módulos de API: auth [frontend/src/lib/api/client.ts](mdc:frontend/src/lib/api/client.ts), transcrições [frontend/src/lib/api/transcriptions.ts](mdc:frontend/src/lib/api/transcriptions.ts)
+  - Componente de transcrições: [frontend/src/app/dashboard/transcriptions/TranscriptionsClient.tsx](mdc:frontend/src/app/dashboard/transcriptions/TranscriptionsClient.tsx)
+
+- DevOps:
+  - Compose: [docker-compose.yml](mdc:docker-compose.yml)
+  - Dockerfiles: [backend/Dockerfile](mdc:backend/Dockerfile), [frontend/Dockerfile](mdc:frontend/Dockerfile)
+  - Comandos: [Makefile](mdc:Makefile)
+
+## Convenções Importantes
+- API base: `http://localhost:8000/api/v1` com docs em `/docs`.
+- CORS: configure origens via `BACKEND_CORS_ORIGINS` (evite `*` em produção).
+- SECRET_KEY: defina via env; não gere a cada boot em ambientes persistentes.
+- Banco de dados: use Alembic para migrações; evite `create_all` fora de desenvolvimento.
+- Uploads: `uploads/` (ver `UPLOAD_PATH`); valide extensão e tamanho conforme `settings`.
+- Frontend: use `NEXT_PUBLIC_API_URL` para apontar a API.
+
+## Como Rodar (desenvolvimento)
+- `make dev` para subir todos os serviços.
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000` e docs em `http://localhost:8000/api/v1/docs`
+
+## Estilo e Qualidade
+- Python: tipagem explícita, Pydantic v2, async/await, Black/Flake8/Mypy.
+- TypeScript/React: componentes Client quando necessário, tipagens estritas, Tailwind consistente.
+- Commits: Conventional Commits (ver regra específica).
+
+## Referências úteis
+- README: [README.md](mdc:README.md)
+- CLAUDE guidelines: [CLAUDE.md](mdc:CLAUDE.md)

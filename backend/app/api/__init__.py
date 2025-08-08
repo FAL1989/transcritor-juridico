@@ -1,8 +1,12 @@
 from fastapi import APIRouter
 
+from app.api.auth import router as auth_router
+from app.api.transcriptions import router as transcriptions_router
+from app.api.texts import router as texts_router
+
 api_router = APIRouter()
 
-# Import and include routers here as they are created
-# Example:
-# from app.api.auth import router as auth_router
-# api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+# Include routers
+api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+api_router.include_router(transcriptions_router, prefix="/transcriptions", tags=["transcriptions"])
+api_router.include_router(texts_router, prefix="/texts", tags=["texts"])

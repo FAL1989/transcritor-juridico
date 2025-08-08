@@ -1,0 +1,12 @@
+---
+globs: backend/tests/**,frontend/**/*.test.ts,frontend/**/*.test.tsx,frontend/**/*.spec.ts,frontend/**/*.spec.tsx
+---
+# Regras de Testes
+
+- Backend:
+  - Use `pytest-asyncio` e `httpx.AsyncClient` para testes de API assíncronos.
+  - Crie/limpe tabelas no escopo do teste; evite dependências externas não determinísticas.
+  - Cubra fluxos principais: register/login/me/refresh; upload/list/detail de transcrições.
+- Frontend:
+  - Jest + Testing Library; prefira testes de interação e contratos de API simulados.
+  - Não acesse rede real; simule `fetch`/handlers.

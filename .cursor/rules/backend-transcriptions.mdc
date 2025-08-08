@@ -1,0 +1,14 @@
+---
+globs: backend/app/api/transcriptions.py,backend/app/models/transcription.py,backend/app/schemas/transcription.py
+---
+# Regras de Transcrições (Upload/Processamento)
+
+- Upload (`POST /transcriptions/upload`): multipart com `title` e `file`; rota protegida (Bearer).
+- Validações obrigatórias:
+  - Extensão ∈ `settings.ALLOWED_AUDIO_EXTENSIONS`.
+  - Tamanho ≤ `settings.MAX_UPLOAD_SIZE`.
+  - Caminho: salve em `UPLOAD_PATH` com nome único (sufixo incremental ou `uuid`).
+- Estado inicial: `status = PENDING`, `language = settings.TRANSCRIPTION_LANGUAGE`; persista `file_size` e `original_filename`.
+- Listagem/Detalhe: retorne apenas transcrições do usuário; 404 quando não pertencer ao dono.
+- Futuro (guideline): processamento assíncrono (fila Redis) altera `status` para `PROCESSING/COMPLETED/FAILED` e preenche `duration`, `full_text`, `segments`.
+- Evite processamento pesado no request; exponha progresso via SSE/WebSocket.
