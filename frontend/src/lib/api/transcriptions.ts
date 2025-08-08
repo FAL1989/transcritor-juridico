@@ -10,7 +10,8 @@ export type Transcription = {
   created_at: string;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+// Always go through Next.js rewrite to avoid mixed content/CORS
+const BASE_URL = '/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
