@@ -27,7 +27,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 
 export const transcriptionsApi = {
   async list(accessToken: string): Promise<Transcription[]> {
-    const res = await fetch(`${BASE_URL}/transcriptions`, {
+    const res = await fetch(`${BASE_URL}/transcriptions/`, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     });
