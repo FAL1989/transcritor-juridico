@@ -2,7 +2,8 @@ export type NormalizeResponse = { content: string };
 export type ExtractResponse = { content: string };
 export type CompareResponse = { additions: { line: number; text: string }[]; removals: { line: number; text: string }[] };
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+// Use Next.js rewrite entrypoint to avoid mixed content/CORS
+const BASE_URL = '/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
