@@ -14,7 +14,8 @@ export type UserResponse = {
   updated_at?: string | null;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
+// Use always the Next.js rewrite entrypoint to avoid mixed content/CORS in the browser
+const BASE_URL = '/api';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
