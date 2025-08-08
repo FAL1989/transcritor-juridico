@@ -11,7 +11,12 @@ function resolveApiBase() {
     // mantém raw como string
   }
   // remover barra final para concatenar ":path*" corretamente
-  return raw.replace(/\/$/, '');
+  raw = raw.replace(/\/$/, '');
+  // garantir https em produção para evitar mixed content
+  if (process.env.VERCEL_ENV === 'production') {
+    raw = raw.replace(/^http:/, 'https:');
+  }
+  return raw;
 }
 
 const API_BASE = resolveApiBase();
