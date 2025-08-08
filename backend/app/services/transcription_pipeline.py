@@ -53,6 +53,8 @@ def run_transcription_background(transcription_id: int) -> None:
 
     async def _runner() -> None:
         async with AsyncSessionLocal() as session:
+            # Em testes, use DB em memória se DATABASE_URL apontar para sqlite
+            # (AsyncSessionLocal já foi criado com settings.DATABASE_URL)
             result = await session.execute(select(Transcription).where(Transcription.id == transcription_id))
             transcription: Optional[Transcription] = result.scalar_one_or_none()
             if transcription is None:
