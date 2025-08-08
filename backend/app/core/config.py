@@ -1,6 +1,6 @@
 from typing import List, Union
 from pydantic_settings import BaseSettings
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import field_validator
 import secrets
 
 
@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     # API
     API_V1_PREFIX: str = "/api/v1"
     
-    # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    # CORS (use '*' only in development)
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    BACKEND_CORS_ORIGIN_REGEX: str | None = None  # ex.: r"https://.*\\.vercel\\.app"
     
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

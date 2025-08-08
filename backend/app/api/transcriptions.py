@@ -12,6 +12,8 @@ from app.models.transcription import Transcription, TranscriptionStatus
 from app.api.auth import get_current_user
 from app.schemas.auth import UserResponse
 from app.schemas.transcription import TranscriptionResponse
+from fastapi import BackgroundTasks
+from app.services.transcription_pipeline import run_transcription_background, enqueue_transcription_job
 
 router = APIRouter()
 
@@ -28,6 +30,7 @@ def _validate_extension(filename: str) -> None:
 
 @router.post("/upload", response_model=TranscriptionResponse, status_code=201)
 async def upload_transcription(
+    background: BackgroundTasks,
     title: str = Form(...),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
@@ -70,6 +73,12 @@ async def upload_transcription(
     db.add(transcription)
     await db.flush()
     await db.refresh(transcription)
+
+    # Kick off background transcription: prefer Redis RQ, fallback para BackgroundTasks
+    try:
+        enqueue_transcription_job(transcription.id)
+    except Exception:
+        background.add_task(run_transcription_background, transcription.id)
 
     return TranscriptionResponse.model_validate(transcription)
 

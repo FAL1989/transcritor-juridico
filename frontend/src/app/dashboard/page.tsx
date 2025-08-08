@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { api, type UserResponse } from '@/lib/api/client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { TextsClient } from './texts/TextsClient';
 import { TranscriptionsClient } from './transcriptions/TranscriptionsClient';
 
 export default function DashboardPage() {
@@ -34,12 +35,21 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
           {user && <span className="text-gray-700">{user.full_name}</span>}
         </div>
-        <TranscriptionsClient />
+        <div className="mt-6 grid grid-cols-1 gap-6">
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900">Áudio/Vídeo</h2>
+            <TranscriptionsClient />
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900">Texto/Documentos</h2>
+            <TextsClient />
+          </section>
+        </div>
       </div>
     </main>
   );

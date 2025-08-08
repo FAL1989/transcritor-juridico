@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,6 +65,21 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
     depends_on:
       - backend
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: transcritor_worker
+    command: python worker.py
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/transcritor_juridico
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
   pgadmin:
     image: dpage/pgadmin4:latest

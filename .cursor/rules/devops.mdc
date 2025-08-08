@@ -1,0 +1,14 @@
+---
+alwaysApply: false
+description: Docker/Compose, variáveis de ambiente e comandos de desenvolvimento
+---
+# DevOps e Ambiente
+
+- Compose: serviços `postgres:5432`, `redis:6379`, backend `8000`, frontend `3000`.
+- Comandos:
+  - `make dev` (sobe tudo), `make logs`, `make down`, `make migrate`, `make migrate-create m="..."`.
+- Variáveis de ambiente importantes:
+  - Backend: `DATABASE_URL`, `SECRET_KEY`, `BACKEND_CORS_ORIGINS`, `REDIS_URL`, `UPLOAD_PATH`, `TRANSCRIPTION_LANGUAGE`.
+  - Frontend: `NEXT_PUBLIC_API_URL`.
+- Migrações: usar Alembic; evite `create_all` fora de desenvolvimento.
+- CORS: configure origens explícitas (localhost:3000 em dev); evitar `*` em produção.

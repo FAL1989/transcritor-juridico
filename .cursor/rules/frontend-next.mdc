@@ -1,0 +1,15 @@
+---
+globs: frontend/src/**/*.{ts,tsx}
+---
+# Regras Frontend (Next.js 14 / TypeScript)
+
+- App Router: use componentes Client somente quando necessário (`"use client"`).
+- API:
+  - Base em `process.env.NEXT_PUBLIC_API_URL`.
+  - Use `fetch` com `Authorization: Bearer <token>` e `cache: 'no-store'` para dados sensíveis.
+  - Padronize tratamento de erro lendo `detail` do JSON.
+- Estado/Auth (MVP): tokens em `localStorage`; planejar migração para cookies httpOnly em produção.
+- Estilo: Tailwind consistente; acessebilidade (foco, contraste) e semântica.
+- Tipos: mantenha tipos alinhados aos schemas Pydantic (`UserResponse`, `Transcription`, etc.).
+- Organização: APIs em `src/lib/api/`; páginas em `src/app/`; componentes específicos em pastas de feature.
+- Testes: Jest + Testing Library; priorize testes de interação para rotas críticas.

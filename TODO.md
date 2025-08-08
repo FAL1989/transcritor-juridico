@@ -10,32 +10,29 @@
 - [ ] Implementar pseudonimização de dados para LGPD
 
 ### Upload e Processamento (Sprint 2)
-- [ ] Implementar upload de arquivos de áudio/vídeo
-- [ ] Validar formatos de arquivo (mp3, wav, m4a, ogg, flac, mp4, avi, mov)
+- [x] Implementar upload de arquivos de áudio/vídeo (MVP)
+- [x] Validar formatos de arquivo (mp3, wav, m4a, ogg, flac, mp4, avi, mov)
 - [ ] Adicionar barra de progresso de upload
-- [ ] Implementar limite de tamanho de arquivo (100MB)
+- [x] Implementar limite de tamanho de arquivo (100MB)
 
 ### Transcrição
-- [ ] Integrar Whisper AI para transcrição automática
+- [ ] Integrar Whisper AI para transcrição automática (faster-whisper)
 - [ ] Implementar seleção de modelo Whisper (tiny, base, small, medium, large)
 - [ ] Adicionar detecção automática de idioma
 - [ ] Implementar segmentação por timestamps
 
-### Comparação de Depoimentos (NOVO - Requisito Fabiana)
-- [ ] Implementar comparação automática de depoimentos (policial vs judicial)
+- [x] Implementar comparação automática de depoimentos (policial vs judicial) – MVP por linha
 - [ ] Criar sistema de detecção de similaridade com embeddings
 - [ ] Implementar geração de texto padrão para depoimentos idênticos
 - [ ] Destacar divergências quando existirem
 - [ ] Permitir override manual da escolha do algoritmo
 
-### Templates e Esquemas Jurídicos (NOVO - Requisito Fabiana)
-- [ ] Criar templates para votos/esquemas de crimes comuns (tráfico, etc)
+- [x] Criar templates para votos/esquemas de crimes comuns (Termo/Despacho – MVP)
 - [ ] Estrutura padrão: Relatório → Denúncia → Provas → Julgamento → Dosimetria
 - [ ] Sistema de múltiplos comandos/templates personalizáveis
 - [ ] Biblioteca de frases padrão jurídicas
 
-### Integração LLM (NOVO)
-- [ ] Integrar Azure OpenAI com GPT-4o mini
+- [ ] Integrar Azure OpenAI com GPT-4o mini (serviço `app/services/llm.py`)
 - [ ] Implementar fusão inteligente de textos repetitivos
 - [ ] Sistema de ranking de qualidade de depoimentos
 - [ ] Configurar limites de budget e alertas
@@ -69,14 +66,12 @@
 - [ ] Criar glossário automático de termos técnicos
 - [ ] Adicionar marcação de trechos importantes
 
-### Exportação
-- [ ] Criar sistema de exportação (PDF, DOCX, TXT)
+- [ ] Criar sistema de exportação (PDF, DOCX, TXT) – DOCX básico via `python-docx`
 - [ ] Implementar templates customizáveis para documentos
 - [ ] Adicionar cabeçalho com informações do processo
 - [ ] Implementar exportação com formatação jurídica padrão
 
-### Busca e Organização
-- [ ] Implementar busca full-text nas transcrições
+- [ ] Implementar busca full-text nas transcrições + embeddings (pgvector)
 - [ ] Adicionar filtros por data, processo, participantes
 - [ ] Criar sistema de tags e categorias
 - [ ] Implementar ordenação e paginação
@@ -107,8 +102,7 @@
 - [ ] Criar interface multilíngue
 - [ ] Adicionar suporte a diferentes formatos de data/hora
 
-### Deploy e Produção
-- [ ] Preparar deploy para produção
+- [x] Preparar deploy para produção (guia MVP)
 - [ ] Configurar HTTPS e certificados SSL
 - [ ] Implementar backup automático
 - [ ] Criar documentação de deploy

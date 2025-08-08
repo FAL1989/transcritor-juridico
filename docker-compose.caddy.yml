@@ -1,0 +1,23 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: transcritor_caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - ACME_EMAIL=${ACME_EMAIL:-admin@example.com}
+      - PUBLIC_HOST=${PUBLIC_HOST}
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+

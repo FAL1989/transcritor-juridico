@@ -235,6 +235,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ## 📚 Documentação Adicional
 
 - [Documentação da API](http://localhost:8000/api/v1/docs)
+- [Guia do MVP](docs/MVP_GUIDE.md)
 - [Estrutura do Banco de Dados](DATABASE.md)
 - [Lista de Tarefas](TODO.md)
 - [Guia de Deploy](DEPLOYMENT.md)

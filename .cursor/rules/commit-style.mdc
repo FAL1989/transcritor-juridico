@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+# Estilo de Commits (Conventional Commits)
+
+Formato: `tipo(escopo): resumo`
+
+Tipos comuns: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`.
+
+Exemplos:
+- `feat(auth): add refresh token endpoint`
+- `fix(transcriptions): validate max file size on upload`
+- `docs(readme): update setup instructions`
