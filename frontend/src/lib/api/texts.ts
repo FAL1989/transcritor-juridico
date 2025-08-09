@@ -41,7 +41,7 @@ export const textsApi = {
     if (input.comarca) form.append('comarca', input.comarca);
     if (input.processo) form.append('processo', input.processo);
     if (input.local_data) form.append('local_data', input.local_data);
-    const res = await fetch(`${BASE_URL}/texts/normalize`, {
+    const res = await fetch(`${BASE_URL}/texts/normalize/`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
       body: form,
@@ -53,7 +53,7 @@ export const textsApi = {
     const form = new FormData();
     form.append('file', file);
     if (anonymize) form.append('anonymize', String(!!anonymize));
-    const res = await fetch(`${BASE_URL}/texts/extract`, {
+    const res = await fetch(`${BASE_URL}/texts/extract/`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
       body: form,
@@ -68,7 +68,7 @@ export const textsApi = {
     const form = new FormData();
     form.append('left', input.left);
     form.append('right', input.right);
-    const res = await fetch(`${BASE_URL}/texts/compare`, {
+    const res = await fetch(`${BASE_URL}/texts/compare/`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
       body: form,

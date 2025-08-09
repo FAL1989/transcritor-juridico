@@ -35,7 +35,7 @@ export const api = {
     full_name: string;
     password: string;
   }): Promise<UserResponse> {
-    const res = await fetch(`${BASE_URL}/auth/register`, {
+    const res = await fetch(`${BASE_URL}/auth/register/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -49,7 +49,7 @@ export const api = {
     form.append('username', input.email);
     form.append('password', input.password);
 
-    const res = await fetch(`${BASE_URL}/auth/login`, {
+    const res = await fetch(`${BASE_URL}/auth/login/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: form.toString(),
@@ -58,7 +58,7 @@ export const api = {
   },
 
   async me(accessToken: string): Promise<UserResponse> {
-    const res = await fetch(`${BASE_URL}/auth/me`, {
+    const res = await fetch(`${BASE_URL}/auth/me/`, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     });
