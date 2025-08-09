@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = 'https://api.168.231.88.105.sslip.io/api/v1';
+// Backend base URL resolution (runtime on serverless)
+// Priority: BACKEND_URL > NEXT_PUBLIC_API_URL > localhost default
+const DEFAULT_BACKEND_URL = 'http://localhost:8000/api/v1';
+const configuredBackend = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = (configuredBackend ?? DEFAULT_BACKEND_URL).replace(/\/$/, '');
 
 async function handleRequestBody(request: NextRequest): Promise<string | FormData | null> {
   const contentType = request.headers.get('content-type') || '';
@@ -19,6 +23,22 @@ async function handleRequestBody(request: NextRequest): Promise<string | FormDat
   }
   
   return null;
+}
+
+function sanitizeHeadersForBody(headers: Headers, body: string | FormData | null): Headers {
+  const result = new Headers(headers);
+  // Ensure upstream calculates correct lengths/boundaries
+  result.delete('content-length');
+  if (body instanceof FormData) {
+    // Let fetch set the proper multipart boundary
+    result.delete('content-type');
+  }
+  // Hop-by-hop headers should not be forwarded
+  result.delete('connection');
+  result.delete('keep-alive');
+  result.delete('transfer-encoding');
+  result.delete('upgrade');
+  return result;
 }
 
 async function proxyRequest(
@@ -40,7 +60,7 @@ async function proxyRequest(
   
   const response = await fetch(url, {
     method,
-    headers,
+    headers: sanitizeHeadersForBody(headers, body),
     body,
   });
   

@@ -24,8 +24,8 @@ const API_BASE = resolveApiBase();
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // Rewrites removidos - agora controlado pelo vercel.json
-  // para evitar conflitos de precedência no edge
+  // Rewrites/edge removidos. Estamos usando API Routes (app/api/[...path])
+  // como proxy server-side para evitar problemas de 307/mixed content
   env: {
     NEXT_PUBLIC_API_URL: API_BASE,
   },

@@ -23,13 +23,16 @@ BACKEND_CORS_ORIGIN_REGEX="https://(.*\\.vercel\\.app|.*\\.sslip\\.io)"
 Frontend (produção) deve ser buildado com:
 
 ```
+# Preferencialmente use BACKEND_URL no ambiente do servidor (Vercel):
+# BACKEND_URL=https://SEU_BACKEND/api/v1
+# Como fallback (injeta no build):
 NEXT_PUBLIC_API_URL=https://SEU_BACKEND/api/v1
 ```
 
 Em desenvolvimento, o default é `http://localhost:8000/api/v1`.
 
 Observação: no Vercel, configure o projeto com Preset "Next.js", Root Directory `frontend/` e não
-defina "Output Directory" manualmente. Defina `NEXT_PUBLIC_API_URL` nos Environment Variables.
+defina "Output Directory" manualmente. Defina `BACKEND_URL` (e opcionalmente `NEXT_PUBLIC_API_URL`) nos Environment Variables.
 
 ## 3) Subir em desenvolvimento
 
@@ -81,7 +84,7 @@ make migrate
 docker-compose up -d postgres redis
 docker-compose up -d --build backend
 
-# Frontend (injeta a API no build)
+# Frontend (injeta a API no build caso não use BACKEND_URL)
 docker-compose build --build-arg NEXT_PUBLIC_API_URL=https://SEU_BACKEND/api/v1 frontend
 docker-compose up -d frontend
 ```
@@ -164,5 +167,5 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
 
 ---
 
-Para dúvidas ou erros, ver `README.md` e `TODO.md`. Atualize este guia conforme as sprints.
+Para dúvidas ou erros, ver `README.md`. Atualize este guia conforme as sprints.
 

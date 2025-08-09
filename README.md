@@ -14,7 +14,7 @@ Sistema profissional de transcrição para o setor jurídico, com suporte para t
 
 ### Frontend
 - **Next.js 14** com TypeScript
-- **JWT** para auth (frontend consumindo API)
+- **JWT** para auth (frontend consumindo API via API Routes proxy)
 - **React Query** para gerenciamento de estado
 - **Tailwind CSS** para estilização
 - **React Hook Form** + **Zod** para formulários
@@ -106,6 +106,28 @@ npm run dev
 - **Backend API**: http://localhost:8000
 - **Documentação API**: http://localhost:8000/api/v1/docs
 - **PgAdmin**: http://localhost:5050 (user: admin@transcritor.com, senha: admin)
+
+## 🔌 Proxy de API no Frontend (Vercel Functions)
+
+O frontend usa uma rota serverless de captura total em `frontend/src/app/api/[...path]/route.ts` para proxyar todas as chamadas para o backend, evitando problemas de CORS, redirects 307 e mixed content. O cliente do frontend consome sempre `"/api"`.
+
+- Backend de destino é controlado por variável de ambiente no servidor: `BACKEND_URL` (preferencial) ou `NEXT_PUBLIC_API_URL`. Exemplo:
+
+```bash
+# Vercel/produção (Project Settings → Environment Variables)
+BACKEND_URL=https://api.SEUDOMINIO/api/v1
+# opcional (fallback)
+NEXT_PUBLIC_API_URL=https://api.SEUDOMINIO/api/v1
+```
+
+Em desenvolvimento local, se não definido, o proxy usa `http://localhost:8000/api/v1` por padrão.
+
+Endpoints do frontend devem chamar sempre caminhos relativos:
+
+```ts
+// exemplo
+await fetch('/api/auth/login', { method: 'POST', body: ... })
+```
 
 ## 🧪 Testes
 
@@ -216,7 +238,9 @@ transcritor-juridico/
 4. **legal_templates** - Templates de votos e esquemas jurídicos
 
 ### Próximos passos:
-Ver arquivo [TODO.md](TODO.md) para lista completa de funcionalidades a implementar.
+- Consolidar Alembic e desabilitar `create_all` em produção
+- Integrar STT (faster-whisper) e progresso em tempo real
+- Testes E2E (Playwright) para o fluxo de upload e autenticação
 
 ## 🚢 Deploy
 
@@ -231,13 +255,13 @@ docker-compose -f docker-compose.prod.yml up -d
 - Defina SECRET_KEY única e segura
 - Configure serviço de email SMTP
 - Configure storage S3 se necessário
+- Configure BACKEND_URL no ambiente do frontend (Vercel) apontando para `https://SEU_BACKEND/api/v1`
 
 ## 📚 Documentação Adicional
 
 - [Documentação da API](http://localhost:8000/api/v1/docs)
 - [Guia do MVP](docs/MVP_GUIDE.md)
 - [Estrutura do Banco de Dados](DATABASE.md)
-- [Lista de Tarefas](TODO.md)
 - [Guia de Deploy](DEPLOYMENT.md)
 - [Changelog](CHANGELOG.md)
 - [Guia de Contribuição](CONTRIBUTING.md) *(a criar)*

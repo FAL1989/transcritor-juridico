@@ -82,7 +82,7 @@
    })
    ```
 
-4. **Frontend Deploy**
+4. **Frontend Deploy (Vercel)**
    ```bash
    # Instalar Vercel CLI
    npm i -g vercel
@@ -92,12 +92,17 @@
    vercel --prod
    ```
 
+   - Configure as variáveis de ambiente no projeto Vercel (Production):
+     - `BACKEND_URL=https://api.SEUDOMINIO/api/v1`
+     - opcional: `NEXT_PUBLIC_API_URL=https://api.SEUDOMINIO/api/v1`
+   - O frontend usa API Routes (`src/app/api/[...path]/route.ts`) para proxyar `/api/*` → backend.
+
 #### Variáveis de Ambiente
 
 **.env.local (Frontend)**
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
+# Exemplo apenas quando não usar BACKEND_URL no ambiente
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 
 **Supabase Dashboard > Edge Functions > Secrets**
