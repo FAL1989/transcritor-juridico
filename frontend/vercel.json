@@ -1,8 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://api.168.231.88.105.sslip.io/api/v1/$1"
-    }
-  ]
-}
