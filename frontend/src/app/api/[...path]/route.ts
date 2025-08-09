@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = 'https://api.168.231.88.105.sslip.io/api/v1';
 
+/**
+ * Proxy handler for FastAPI backend requests
+ * 
+ * This proxy intelligently handles trailing slashes based on FastAPI endpoint patterns:
+ * - Auth endpoints (login, register, me) use NO trailing slash
+ * - Collection endpoints (transcriptions) use trailing slash
+ * - Specific resource endpoints (transcriptions/123) use NO trailing slash
+ * 
+ * This fixes the 400 Bad Request errors caused by adding trailing slashes to all endpoints.
+ */
+
 async function handleRequestBody(request: NextRequest): Promise<string | FormData | null> {
   const contentType = request.headers.get('content-type') || '';
 
@@ -21,15 +32,62 @@ async function handleRequestBody(request: NextRequest): Promise<string | FormDat
   return null;
 }
 
+// Define endpoints that require trailing slash (collection endpoints)
+const ENDPOINTS_WITH_SLASH = new Set([
+  'transcriptions'
+]);
+
+// Define endpoints that must NOT have trailing slash
+const ENDPOINTS_WITHOUT_SLASH = new Set([
+  'auth/login',
+  'auth/register', 
+  'auth/refresh',
+  'auth/me',
+  'transcriptions/upload',
+  'texts/normalize',
+  'texts/extract',
+  'texts/compare',
+  'texts/export/docx'
+]);
+
+function shouldHaveTrailingSlash(path: string): boolean {
+  // Check exact matches first
+  if (ENDPOINTS_WITHOUT_SLASH.has(path)) {
+    return false;
+  }
+  if (ENDPOINTS_WITH_SLASH.has(path)) {
+    return true;
+  }
+  
+  // Check patterns: if path ends with ID (number), no slash
+  // Example: transcriptions/123 -> no slash
+  if (/\/\d+$/.test(path)) {
+    return false;
+  }
+  
+  // Collection endpoints (base paths) get slash
+  const basePath = path.split('/')[0];
+  if (ENDPOINTS_WITH_SLASH.has(basePath)) {
+    return true;
+  }
+  
+  // Default: no trailing slash (FastAPI default behavior)
+  return false;
+}
+
 async function proxyRequest(
   request: NextRequest,
   method: string,
   { params }: { params: { path: string[] } }
 ) {
   const path = params.path?.join('/') || '';
-  // Always add trailing slash to avoid redirects that lose Authorization header
-  const pathWithSlash = path.endsWith('/') ? path : `${path}/`;
-  const url = `${BACKEND_URL}/${pathWithSlash}${request.nextUrl.search}`;
+  
+  // Intelligently decide trailing slash based on FastAPI endpoint patterns
+  const finalPath = shouldHaveTrailingSlash(path) 
+    ? (path.endsWith('/') ? path : `${path}/`)
+    : (path.endsWith('/') ? path.slice(0, -1) : path);
+    
+  const url = `${BACKEND_URL}/${finalPath}${request.nextUrl.search}`;
 
   const headers = new Headers(request.headers);
   headers.delete('host');
