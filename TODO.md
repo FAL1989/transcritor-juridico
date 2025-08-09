@@ -13,6 +13,8 @@
 ### Upload e Processamento (Sprint 2)
 - [x] Implementar upload de arquivos de áudio/vídeo (MVP)
 - [x] Validar formatos de arquivo (mp3, wav, m4a, ogg, flac, mp4, avi, mov)
+- [x] Sistema de proxy API Routes para comunicação frontend-backend
+- [x] Resolver problemas de trailing slash e CORS
 - [ ] Adicionar barra de progresso de upload
 - [x] Implementar limite de tamanho de arquivo (100MB)
 
@@ -46,7 +48,7 @@
 - [ ] Implementar editor com atalhos para aceitar/rejeitar sugestões (Enter/F2/Ctrl+Shift+D)
 
 ### Testes
-- [ ] Criar testes unitários para o backend (pytest)
+- [x] Criar testes unitários para o backend (pytest)
 - [x] Criar testes de integração para APIs (auth)
 - [x] Executar testes no CI/CD (backend e frontend)
 - [ ] Implementar testes E2E no frontend
@@ -107,6 +109,8 @@
 
 - [x] Preparar deploy para produção (guia MVP)
 - [x] Configurar HTTPS e certificados SSL (Nginx + Let's Encrypt)
+- [x] Deploy em produção funcionando (Vercel + Backend HTTPS)
+- [x] Integração frontend-backend completa e estável
 - [ ] Implementar backup automático
 - [x] Criar documentação de deploy (README/DEPLOYMENT/MVP_GUIDE)
 - [ ] Configurar monitoramento e alertas
@@ -132,7 +136,9 @@
 - [ ] Implementar notificações push
 
 ## 🐛 Bugs Conhecidos
-- [ ] Nenhum bug conhecido até o momento
+- [x] ~~Problemas de CORS e trailing slash em produção~~ (Resolvido com API proxy)
+- [x] ~~Erro 400 em endpoints de autenticação~~ (Resolvido com lógica inteligente de trailing slash)
+- [ ] Nenhum bug ativo conhecido
 
 ## 📚 Documentação
 - [ ] Criar guia de usuário completo
@@ -142,4 +148,4 @@
 
 ---
 
-**Última atualização:** 08/08/2025
+**Última atualização:** 09/08/2025 - Sistema de autenticação, upload e deploy em produção completamente funcionais

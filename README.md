@@ -5,7 +5,7 @@ Sistema profissional de transcrição para o setor jurídico, com suporte para t
 ## 🚀 Tecnologias
 
 ### Backend
-- **Python 3.11** com **FastAPI**
+- **Python 3.12** com **FastAPI**
 - **PostgreSQL** (SQLAlchemy Async)
 - **pgvector** (planejado) para embeddings e busca semântica
 - **Redis** para cache e filas
@@ -23,7 +23,7 @@ Sistema profissional de transcrição para o setor jurídico, com suporte para t
 ## 📋 Pré-requisitos
 
 - Docker e Docker Compose
-- Python 3.11+
+- Python 3.12+
 - Node.js 18+
 - Make (opcional, mas recomendado)
 

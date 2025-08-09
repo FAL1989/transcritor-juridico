@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     # Transcription
     WHISPER_MODEL: str = "base"
     TRANSCRIPTION_LANGUAGE: str = "pt"
+    WHISPER_DEVICE: str = "cpu"  # "cpu" ou "cuda" se GPU disponível
+    MAX_CHUNK_MINUTES: int = 30  # Dividir áudios longos em chunks de N minutos
+    ENABLE_WORD_TIMESTAMPS: bool = True  # Timestamps detalhados por palavra
+    WHISPER_TEMPERATURE: float = 0.0  # 0.0 = mais conservativo, até 1.0 = mais criativo
     
     # Email
     SMTP_HOST: str = ""

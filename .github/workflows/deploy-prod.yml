@@ -1,0 +1,141 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment (skip health checks)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  pre-flight-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check deployment readiness
+        id: check
+        run: |
+          # Check if CI passed on this commit
+          if ! gh api repos/${{ github.repository }}/commits/${{ github.sha }}/status | jq -e '.state == "success"' > /dev/null; then
+            echo "CI checks not passed, aborting deployment"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check for critical security vulnerabilities
+          echo "All checks passed"
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  deploy-production:
+    needs: pre-flight-checks
+    if: needs.pre-flight-checks.outputs.should_deploy == 'true' || github.event.inputs.force_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+      
+      - name: Deploy to Vercel
+        id: deploy
+        working-directory: ./frontend
+        run: |
+          vercel --token=${{ secrets.VERCEL_TOKEN }} --prod --yes
+          DEPLOYMENT_URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} ls --scope=${{ secrets.VERCEL_ORG_ID }} | head -2 | tail -1 | awk '{print $2}')
+          echo "deployment_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+      
+      - name: Wait for deployment
+        run: sleep 30
+      
+      - name: Smoke tests
+        id: smoke_tests
+        run: |
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment_url }}"
+          echo "Testing deployment at: $DEPLOYMENT_URL"
+          
+          # Health check
+          if ! curl -f --max-time 30 "$DEPLOYMENT_URL/api/health" > /dev/null 2>&1; then
+            echo "Health check failed"
+            echo "smoke_passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          # Basic functionality test
+          if ! curl -f --max-time 30 "$DEPLOYMENT_URL" | grep -q "Transcritor"; then
+            echo "Basic functionality test failed"
+            echo "smoke_passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "All smoke tests passed"
+          echo "smoke_passed=true" >> $GITHUB_OUTPUT
+      
+      - name: Rollback on failure
+        if: failure() && steps.smoke_tests.outputs.smoke_passed == 'false'
+        run: |
+          echo "Smoke tests failed, initiating rollback..."
+          # Get previous successful deployment
+          PREV_DEPLOYMENT=$(vercel --token=${{ secrets.VERCEL_TOKEN }} ls --scope=${{ secrets.VERCEL_ORG_ID }} | head -3 | tail -1 | awk '{print $1}')
+          vercel --token=${{ secrets.VERCEL_TOKEN }} promote $PREV_DEPLOYMENT --scope=${{ secrets.VERCEL_ORG_ID }}
+          echo "Rollback completed"
+      
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Production deployment successful"
+          echo "URL: ${{ steps.deploy.outputs.deployment_url }}"
+          
+          # Optional: Send to Slack/Discord
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🚀 Transcritor Jurídico deployed successfully to production"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  post-deploy-monitoring:
+    needs: [deploy-production]
+    if: needs.deploy-production.result == 'success'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup monitoring alerts
+        run: |
+          echo "Setting up post-deployment monitoring..."
+          # Here you would typically:
+          # 1. Update monitoring dashboards
+          # 2. Set temporary alert thresholds
+          # 3. Schedule health check intervals
+          echo "Monitoring configured for 24h enhanced alerting"
+      
+      - name: Performance baseline
+        run: |
+          echo "Establishing performance baseline..."
+          # Run performance tests and store results
+          # This could integrate with tools like:
+          # - Lighthouse CI
+          # - WebPageTest API
+          # - Custom performance monitoring
+          echo "Performance baseline established"

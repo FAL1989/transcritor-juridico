@@ -325,8 +325,8 @@ EXEMPLO DE DELEGAÇÃO COMPLETA:
 **FLUXO OBRIGATÓRIO PARA TODA SOLICITAÇÃO:**
 
 1. **📋 ANALISE** complexidade e identifique todos os 10 agentes potenciais
-2. **🗺️ CRIE** plano usando o máximo de agentes em paralelo
-3. **👥 DELEGUE IMEDIATAMENTE** para todos os agentes relevantes
+2. **🗺️ CRIE** plano usando paralelização controlada (máx. 6 agentes em paralelo por fase)
+3. **👥 DELEGUE IMEDIATAMENTE** para todos os agentes relevantes (respeitando limites e budgets)
 4. **👁️ MONITORE** progresso de todos os agentes
 5. **✅ CONSOLIDE** resultados integrados
 
@@ -348,3 +348,20 @@ TODOS EM PARALELO:
 - Infraestrutura: @devops-engineer + @data-analyst
 - Qualidade: @code-reviewer + @code-analyzer
 - Suporte: @research-specialist + @context-document
+
+## 📦 Padrão de Saída (AURORA ENVELOPE)
+- TL;DR | Resumo (5–10 linhas) | Plano (tarefas, dependências, critérios de aceite) | Delegações (com paralelização explícita) | Riscos & Mitigações | Observabilidade (3 métricas, 2 alertas, 1 SLO) | Custo & Latência (budgets)
+
+## 🔗 Encadeamentos Padrão
+- Novo endpoint: backend-developer → [em paralelo] code-reviewer + security-analyst → context-documentation-updater → devops-engineer (pipeline)
+- Bug frontend: frontend-developer → [em paralelo] code-reviewer + code-analyzer → context-documentation-updater
+- Falha CI: devops-engineer → code-reviewer → security-analyst (deps) → context-documentation-updater
+
+## 🔒 Restrições
+- Não executar código/edits/comandos. Apenas planejar, delegar e consolidar.
+
+## ✅ Checkpoints Obrigatórios
+- Smoke tests pós-deploy (login, registro, listagem, upload) antes de qualquer "RESOLVIDO DEFINITIVAMENTE".
+- Proteção de branch: PR obrigatório na `main`, CI verde (lint→test→build→scan deps) e revisão por par antes de merge.
+- Desligar auto-accept edits em `main`/produção.
+- Definir budgets por fase (tempo/tokens) e limitar paralelização a 4–6 agentes simultâneos.

@@ -8,10 +8,10 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.models.transcription import Transcription, TranscriptionStatus
+from app.models.transcription import Transcription, TranscriptionStatus, TranscriptionSegment
 from app.api.auth import get_current_user
 from app.schemas.auth import UserResponse
-from app.schemas.transcription import TranscriptionResponse
+from app.schemas.transcription import TranscriptionResponse, TranscriptionSegmentResponse
 from fastapi import BackgroundTasks
 from app.services.transcription_pipeline import run_transcription_background, enqueue_transcription_job
 
@@ -106,3 +106,61 @@ async def get_transcription(
     if transcription is None or transcription.user_id != int(current_user.id):
         raise HTTPException(status_code=404, detail="Transcrição não encontrada")
     return TranscriptionResponse.model_validate(transcription)
+
+
+@router.get("/{transcription_id}/segments", response_model=List[TranscriptionSegmentResponse])
+async def get_transcription_segments(
+    transcription_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserResponse = Depends(get_current_user),
+) -> Any:
+    """Obter segmentos detalhados de uma transcrição."""
+    # Verificar se transcrição existe e pertence ao usuário
+    result = await db.execute(select(Transcription).where(Transcription.id == transcription_id))
+    transcription: Optional[Transcription] = result.scalar_one_or_none()
+    if transcription is None or transcription.user_id != int(current_user.id):
+        raise HTTPException(status_code=404, detail="Transcrição não encontrada")
+    
+    # Buscar segmentos ordenados por tempo
+    segments_result = await db.execute(
+        select(TranscriptionSegment)
+        .where(TranscriptionSegment.transcription_id == transcription_id)
+        .order_by(TranscriptionSegment.start_time)
+    )
+    segments = segments_result.scalars().all()
+    
+    return [TranscriptionSegmentResponse.model_validate(segment) for segment in segments]
+
+
+@router.get("/{transcription_id}/status")
+async def get_transcription_status(
+    transcription_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserResponse = Depends(get_current_user),
+) -> Any:
+    """Obter status detalhado de uma transcrição (para polling do frontend)."""
+    result = await db.execute(select(Transcription).where(Transcription.id == transcription_id))
+    transcription: Optional[Transcription] = result.scalar_one_or_none()
+    if transcription is None or transcription.user_id != int(current_user.id):
+        raise HTTPException(status_code=404, detail="Transcrição não encontrada")
+    
+    # Calcular progresso estimado baseado no status
+    progress_map = {
+        TranscriptionStatus.PENDING: 0,
+        TranscriptionStatus.PROCESSING: 50,  # Estimar 50% quando processando
+        TranscriptionStatus.COMPLETED: 100,
+        TranscriptionStatus.FAILED: 0,
+        TranscriptionStatus.REVIEWED: 100,
+    }
+    
+    return {
+        "id": transcription.id,
+        "status": transcription.status,
+        "progress": progress_map.get(transcription.status, 0),
+        "duration": transcription.duration,
+        "created_at": transcription.created_at,
+        "updated_at": transcription.updated_at,
+        "completed_at": transcription.completed_at,
+        "has_segments": len(transcription.segments or []) > 0,
+        "segment_count": len(transcription.segments or [])
+    }

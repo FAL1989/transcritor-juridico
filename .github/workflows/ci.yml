@@ -1,10 +1,17 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
 
 jobs:
   backend-tests:
@@ -47,19 +54,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run linting
+      - name: Run linting (STRICT)
         working-directory: ./backend
         run: |
-          # Relaxa regras estritas para CI inicial; reforçar após ajustes de estilo
-          flake8 app/ --extend-ignore=E501,W293,W292,W391,E741,F401
-          mypy app/ || true
+          echo "::group::Backend Linting"
+          flake8 app/ --max-line-length=88 --max-complexity=10
+          mypy app/ --strict
+          black --check --diff app/
+          echo "::endgroup::"
 
-      - name: Run tests
+      - name: Run tests with coverage gate
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:password@localhost:5432/test_db
         run: |
-          pytest -v --cov=app --cov-report=xml
+          echo "::group::Backend Tests"
+          pytest -v --cov=app --cov-report=xml --cov-fail-under=80
+          echo "::endgroup::"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
@@ -90,13 +101,20 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run linting
+      - name: Run linting (STRICT)
         working-directory: ./frontend
-        run: npm run lint || true
+        run: |
+          echo "::group::Frontend Linting"
+          npm run lint
+          npx prettier --check "src/**/*.{ts,tsx,js,jsx}"
+          echo "::endgroup::"
 
-      - name: Run tests
+      - name: Run tests with coverage gate
         working-directory: ./frontend
-        run: npm run test:ci -- --passWithNoTests --coverage || true
+        run: |
+          echo "::group::Frontend Tests"
+          npm run test:ci -- --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+          echo "::endgroup::"
 
       - name: Build application
         working-directory: ./frontend
@@ -135,19 +153,34 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy vulnerability scanner (BLOCKING)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "fs"
           scan-ref: "."
           format: "sarif"
           output: "trivy-results.sarif"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
+        if: always()
         with:
           sarif_file: "trivy-results.sarif"
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python, javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2

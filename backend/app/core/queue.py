@@ -13,6 +13,7 @@ def get_redis_connection() -> Redis:
 
 
 def get_queue(name: str = "transcriptions") -> Queue:
-    return Queue(name, connection=get_redis_connection(), default_timeout=60 * 60)
+    # Aumentar timeout para 4h para áudios longos
+    return Queue(name, connection=get_redis_connection(), default_timeout=4 * 60 * 60)
 
 

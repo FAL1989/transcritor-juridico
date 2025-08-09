@@ -1,0 +1,34 @@
+# Global code owners
+* @FAL1989
+
+# Backend specific
+/backend/ @FAL1989
+/backend/app/core/ @FAL1989
+/backend/app/models/ @FAL1989
+/backend/app/api/ @FAL1989
+
+# Frontend specific
+/frontend/ @FAL1989
+/frontend/src/app/ @FAL1989
+/frontend/src/components/ @FAL1989
+
+# Infrastructure and CI/CD
+/.github/ @FAL1989
+/docker-compose.yml @FAL1989
+/Dockerfile @FAL1989
+/vercel.json @FAL1989
+
+# Database and migrations
+/backend/alembic/ @FAL1989
+/database/ @FAL1989
+
+# Configuration files
+*.yml @FAL1989
+*.yaml @FAL1989
+*.json @FAL1989
+*.toml @FAL1989
+*.env.* @FAL1989
+
+# Security sensitive files
+/backend/app/core/security.py @FAL1989
+/backend/app/core/config.py @FAL1989

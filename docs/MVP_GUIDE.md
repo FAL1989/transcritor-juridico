@@ -138,32 +138,63 @@ curl -s -X POST http://localhost:8000/api/v1/auth/login \
 ```
 
 ## 8) Roteiro para 100% do MVP
-- Infra/config
-  - [x] `SECRET_KEY` fixo em produção; CORS com domínio do frontend (ORIGINS/REGEX)
-  - [ ] Alembic aplicado (sem `create_all` em prod)
-- Áudio/Vídeo
-  - [x] Upload e listagem protegidos
-  - [x] Worker assíncrono (Redis + RQ) – MVP
-  - [ ] STT com `faster-whisper` (CPU/GPU) e atualização de `status/duration/full_text`
-  - [ ] SSE/WebSocket de progresso no frontend
-- Texto/Documento
-  - [x] Normalização + modelos (Termo/Despacho) + anonimização opcional
-  - [x] Extração de PDF/DOCX (MVP sem OCR)
-  - [x] Comparação A vs B por linha
-  - [x] Export DOCX básico
-  - [ ] Export DOCX/pdf com assinatura (futuro)
-- LLM
-  - [ ] Serviço `app/services/llm.py` (Azure OpenAI ou local) com modos “fiel” e “assistido”
-  - [ ] Pós-processar STT (pontuação/normalização/summary)
-  - [ ] Extração de metadados e preenchimento de templates
-- Segurança/Operação
-  - [ ] RBAC básico (Juíza/Escrevente/Perito)
-  - [ ] Auditoria de ações
-  - [ ] Rate limiting (slowapi) e logs estruturados
-- Qualidade
-  - [x] Testes backend (auth/transcriptions/texts) cobrem fluxo MVP
-  - [ ] Testes frontend (Jest) e E2E
-  - [ ] Observabilidade (Sentry/Prometheus) e backups
+
+### ✅ FASE 1 - Infraestrutura e Autenticação (COMPLETA)
+- [x] `SECRET_KEY` fixo em produção; CORS com domínio do frontend (ORIGINS/REGEX)
+- [x] Sistema de autenticação JWT completo (login/register/refresh)
+- [x] Deploy em produção funcionando (Vercel + Backend HTTPS)
+- [x] API Proxy Routes com lógica inteligente de trailing slash
+- [x] Resolução de problemas de CORS e comunicação frontend-backend
+- [ ] Alembic aplicado (sem `create_all` em prod)
+
+### ✅ FASE 2 - Upload e Listagem (COMPLETA)
+- [x] Upload de arquivos de áudio/vídeo protegidos
+- [x] Listagem de transcrições com paginação
+- [x] Worker assíncrono (Redis + RQ) – MVP
+- [x] Validação de formatos e tamanho de arquivo
+- [ ] STT com `faster-whisper` (CPU/GPU) e atualização de `status/duration/full_text`
+- [ ] SSE/WebSocket de progresso no frontend
+
+### ✅ FASE 3 - Processamento de Texto (COMPLETA)
+- [x] Normalização + modelos (Termo/Despacho) + anonimização opcional
+- [x] Extração de PDF/DOCX (MVP sem OCR)
+- [x] Comparação A vs B por linha com destaque de diferenças
+- [x] Export DOCX básico
+- [ ] Export DOCX/pdf com assinatura (futuro)
+
+### 🔄 FASE 4 - LLM e Transcrição (EM DESENVOLVIMENTO)
+- [ ] Serviço `app/services/llm.py` (Azure OpenAI ou local) com modos "fiel" e "assistido"
+- [ ] Pós-processar STT (pontuação/normalização/summary)
+- [ ] Extração de metadados e preenchimento de templates
+- [ ] Integração completa Whisper AI
+
+### 🔄 FASE 5 - Segurança e Operação (PLANEJADA)
+- [ ] RBAC básico (Juíza/Escrevente/Perito)
+- [ ] Auditoria de ações
+- [ ] Rate limiting (slowapi) e logs estruturados
+
+### 🔄 FASE 6 - Qualidade e Testes (EM ANDAMENTO)
+- [x] Testes backend (auth/transcriptions/texts) cobrem fluxo MVP
+- [x] CI/CD funcionando com testes automatizados
+- [ ] Testes frontend (Jest) e E2E
+- [ ] Observabilidade (Sentry/Prometheus) e backups
+
+## 9) Problemas Resolvidos
+
+### Comunicação Frontend-Backend
+- **Problema**: Erros 400/404 em requests de autenticação devido a trailing slash inconsistente
+- **Solução**: Implementado sistema de API proxy em `/app/api/[...path]/route.ts` com lógica inteligente
+- **Resultado**: Comunicação 100% funcional entre frontend (Vercel) e backend (HTTPS)
+
+### CORS em Produção
+- **Problema**: Bloqueios CORS ao deployar em domínios diferentes
+- **Solução**: Configuração de `BACKEND_CORS_ORIGINS` (JSON) e `BACKEND_CORS_ORIGIN_REGEX`
+- **Resultado**: Requisições funcionando perfeitamente em produção
+
+### Deploy e Configuração
+- **Problema**: Complexidade de configuração de variáveis de ambiente
+- **Solução**: Sistema flexível com `BACKEND_URL` (runtime) e `NEXT_PUBLIC_API_URL` (build-time)
+- **Resultado**: Deploy simplificado e ambiente híbrido (Vercel + backend próprio)
 
 ---
 

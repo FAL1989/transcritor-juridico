@@ -1,0 +1,178 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollback_reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      target_commit:
+        description: 'Target commit SHA (leave empty for previous successful deployment)'
+        required: false
+        type: string
+      skip_tests:
+        description: 'Skip tests during rollback (emergency only)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  emergency-rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate rollback request
+        id: validate
+        run: |
+          echo "Validating rollback request..."
+          echo "Reason: ${{ github.event.inputs.rollback_reason }}"
+          echo "Target commit: ${{ github.event.inputs.target_commit || 'auto-detect' }}"
+          echo "Skip tests: ${{ github.event.inputs.skip_tests }}"
+          
+          # Find target commit
+          if [ -n "${{ github.event.inputs.target_commit }}" ]; then
+            TARGET_COMMIT="${{ github.event.inputs.target_commit }}"
+          else
+            # Find last successful deployment
+            TARGET_COMMIT=$(gh run list --workflow=deploy-prod.yml --status=success --limit=1 --json headSha --jq '.[0].headSha')
+          fi
+          
+          echo "target_commit=$TARGET_COMMIT" >> $GITHUB_OUTPUT
+          
+          # Verify commit exists
+          if ! git rev-parse --verify "$TARGET_COMMIT" >/dev/null 2>&1; then
+            echo "❌ Target commit $TARGET_COMMIT not found"
+            exit 1
+          fi
+          
+          echo "✅ Target commit validated: $TARGET_COMMIT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      
+      - name: Pre-rollback backup
+        run: |
+          echo "Creating pre-rollback state backup..."
+          
+          # Get current deployment info
+          CURRENT_DEPLOYMENT=$(vercel --token=${{ secrets.VERCEL_TOKEN }} ls --scope=${{ secrets.VERCEL_ORG_ID }} | head -2 | tail -1)
+          echo "Current deployment: $CURRENT_DEPLOYMENT"
+          
+          # Store deployment info for potential restore
+          echo "$CURRENT_DEPLOYMENT" > .rollback_backup
+          echo "Backup created"
+      
+      - name: Checkout target commit
+        run: |
+          TARGET_COMMIT="${{ steps.validate.outputs.target_commit }}"
+          echo "Checking out target commit: $TARGET_COMMIT"
+          git checkout $TARGET_COMMIT
+      
+      - name: Run safety checks
+        if: github.event.inputs.skip_tests != 'true'
+        run: |
+          echo "Running minimal safety checks..."
+          
+          # Quick backend syntax check
+          cd backend
+          python -m py_compile app/main.py
+          echo "✅ Backend syntax check passed"
+          
+          # Quick frontend build check
+          cd ../frontend
+          npm ci --production
+          npm run build
+          echo "✅ Frontend build check passed"
+      
+      - name: Deploy rollback
+        id: rollback_deploy
+        run: |
+          echo "Deploying rollback..."
+          
+          cd frontend
+          
+          # Install Vercel CLI
+          npm install -g vercel@latest
+          
+          # Deploy the rollback
+          DEPLOYMENT_URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --prod --yes | grep -o 'https://[^[:space:]]*')
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          
+          echo "✅ Rollback deployed to: $DEPLOYMENT_URL"
+      
+      - name: Verify rollback
+        id: verify
+        run: |
+          DEPLOYMENT_URL="${{ steps.rollback_deploy.outputs.deployment_url }}"
+          
+          echo "Verifying rollback deployment..."
+          
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Basic health check
+          for i in {1..5}; do
+            if curl -f --max-time 30 "$DEPLOYMENT_URL/api/health" > /dev/null 2>&1; then
+              echo "✅ Rollback health check passed (attempt $i)"
+              echo "rollback_verified=true" >> $GITHUB_OUTPUT
+              break
+            else
+              echo "❌ Rollback health check failed (attempt $i)"
+              if [ $i -eq 5 ]; then
+                echo "rollback_verified=false" >> $GITHUB_OUTPUT
+                exit 1
+              fi
+              sleep 10
+            fi
+          done
+      
+      - name: Update deployment status
+        run: |
+          echo "Updating deployment status..."
+          
+          # Create a deployment status comment or issue
+          gh issue create \
+            --title "🚨 Emergency Rollback Executed" \
+            --body "**Rollback Details:**
+          - Reason: ${{ github.event.inputs.rollback_reason }}
+          - Target Commit: ${{ steps.validate.outputs.target_commit }}
+          - Deployment URL: ${{ steps.rollback_deploy.outputs.deployment_url }}
+          - Verified: ${{ steps.verify.outputs.rollback_verified }}
+          - Executed by: ${{ github.actor }}
+          - Timestamp: $(date -u)
+          
+          **Next Steps:**
+          1. Investigate root cause
+          2. Fix issues in a new branch
+          3. Test thoroughly before next deployment" \
+            --label "rollback,production,urgent"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      
+      - name: Send rollback notification
+        if: always()
+        run: |
+          STATUS="${{ steps.verify.outputs.rollback_verified == 'true' && '✅ SUCCESS' || '❌ FAILED' }}"
+          
+          echo "$STATUS Emergency rollback executed"
+          echo "Reason: ${{ github.event.inputs.rollback_reason }}"
+          echo "Target: ${{ steps.validate.outputs.target_commit }}"
+          echo "Deployment: ${{ steps.rollback_deploy.outputs.deployment_url }}"
+          
+          # Send notifications to team
+          # Uncomment and configure your notification system:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\"$STATUS Transcritor Jurídico rollback - ${{ github.event.inputs.rollback_reason }}\"}" \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up rollback artifacts..."
+          rm -f .rollback_backup
+          echo "Cleanup complete"

@@ -1,0 +1,176 @@
+name: Production Monitoring & Alerting
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Production Frontend
+        id: frontend_check
+        run: |
+          FRONTEND_URL="https://transcritor-juridico-frontend.vercel.app"
+          
+          echo "Checking frontend health at $FRONTEND_URL"
+          
+          # Health check
+          if curl -f --max-time 30 "$FRONTEND_URL/api/health" > /dev/null 2>&1; then
+            echo "frontend_status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Frontend health check passed"
+          else
+            echo "frontend_status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Frontend health check failed"
+            exit 1
+          fi
+          
+          # Response time check
+          RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' "$FRONTEND_URL")
+          echo "frontend_response_time=$RESPONSE_TIME" >> $GITHUB_OUTPUT
+          
+          if (( $(echo "$RESPONSE_TIME > 3.0" | bc -l) )); then
+            echo "⚠️  Frontend response time is high: ${RESPONSE_TIME}s"
+          else
+            echo "✅ Frontend response time acceptable: ${RESPONSE_TIME}s"
+          fi
+
+      - name: Check Backend Services
+        id: backend_check
+        run: |
+          BACKEND_URL="https://transcritor-juridico-backend.onrender.com"
+          
+          echo "Checking backend health at $BACKEND_URL"
+          
+          # API Health check
+          if curl -f --max-time 30 "$BACKEND_URL/api/v1/health" > /dev/null 2>&1; then
+            echo "backend_status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Backend health check passed"
+          else
+            echo "backend_status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Backend health check failed"
+          fi
+          
+          # Database connectivity check
+          if curl -f --max-time 30 "$BACKEND_URL/api/v1/health/db" > /dev/null 2>&1; then
+            echo "database_status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Database connectivity check passed"
+          else
+            echo "database_status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Database connectivity check failed"
+          fi
+
+      - name: Performance Metrics Collection
+        id: metrics
+        if: steps.frontend_check.outputs.frontend_status == 'healthy'
+        run: |
+          FRONTEND_URL="https://transcritor-juridico-frontend.vercel.app"
+          
+          echo "Collecting performance metrics..."
+          
+          # Collect multiple response times
+          total_time=0
+          for i in {1..5}; do
+            time=$(curl -o /dev/null -s -w '%{time_total}' "$FRONTEND_URL")
+            total_time=$(echo "$total_time + $time" | bc -l)
+            sleep 1
+          done
+          
+          avg_response_time=$(echo "scale=3; $total_time / 5" | bc -l)
+          echo "average_response_time=$avg_response_time" >> $GITHUB_OUTPUT
+          echo "📊 Average response time over 5 requests: ${avg_response_time}s"
+          
+          # Check if performance degraded
+          if (( $(echo "$avg_response_time > 2.0" | bc -l) )); then
+            echo "performance_alert=true" >> $GITHUB_OUTPUT
+            echo "⚠️  PERFORMANCE ALERT: Average response time exceeds 2s"
+          else
+            echo "performance_alert=false" >> $GITHUB_OUTPUT
+            echo "✅ Performance within acceptable limits"
+          fi
+
+      - name: SSL Certificate Check
+        run: |
+          echo "Checking SSL certificate validity..."
+          
+          # Check frontend SSL
+          FRONTEND_CERT_DAYS=$(echo | openssl s_client -servername transcritor-juridico-frontend.vercel.app -connect transcritor-juridico-frontend.vercel.app:443 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2 | xargs -I {} date -d "{}" +%s)
+          CURRENT_DATE=$(date +%s)
+          DAYS_UNTIL_EXPIRY=$(( (FRONTEND_CERT_DAYS - CURRENT_DATE) / 86400 ))
+          
+          if [ $DAYS_UNTIL_EXPIRY -lt 30 ]; then
+            echo "⚠️  SSL certificate expires in $DAYS_UNTIL_EXPIRY days"
+          else
+            echo "✅ SSL certificate valid for $DAYS_UNTIL_EXPIRY days"
+          fi
+
+      - name: Send Alerts on Failure
+        if: failure() || steps.metrics.outputs.performance_alert == 'true'
+        run: |
+          echo "🚨 ALERT: System health check failed or performance degraded"
+          echo "Frontend Status: ${{ steps.frontend_check.outputs.frontend_status || 'unknown' }}"
+          echo "Backend Status: ${{ steps.backend_check.outputs.backend_status || 'unknown' }}"
+          echo "Database Status: ${{ steps.backend_check.outputs.database_status || 'unknown' }}"
+          echo "Performance Alert: ${{ steps.metrics.outputs.performance_alert || 'false' }}"
+          
+          # Here you would integrate with your alerting system:
+          # - Slack webhook
+          # - Email notifications
+          # - PagerDuty
+          # - Discord webhook
+          
+          # Example Slack webhook (uncomment and configure):
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data "{\"text\":\"🚨 Transcritor Jurídico Health Alert - Check GitHub Actions for details\"}" \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  lighthouse-audit:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Lighthouse Audit
+        uses: treosh/lighthouse-ci-action@v9
+        with:
+          urls: |
+            https://transcritor-juridico-frontend.vercel.app
+          configPath: './.github/lighthouse/lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  security-monitoring:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Check for Security Headers
+        run: |
+          FRONTEND_URL="https://transcritor-juridico-frontend.vercel.app"
+          
+          echo "Checking security headers..."
+          
+          HEADERS=$(curl -I -s "$FRONTEND_URL")
+          
+          # Check for important security headers
+          if echo "$HEADERS" | grep -qi "strict-transport-security"; then
+            echo "✅ HSTS header present"
+          else
+            echo "❌ HSTS header missing"
+          fi
+          
+          if echo "$HEADERS" | grep -qi "x-content-type-options"; then
+            echo "✅ X-Content-Type-Options header present"
+          else
+            echo "❌ X-Content-Type-Options header missing"
+          fi
+          
+          if echo "$HEADERS" | grep -qi "x-frame-options\|content-security-policy.*frame-ancestors"; then
+            echo "✅ Clickjacking protection present"
+          else
+            echo "❌ Clickjacking protection missing"
+          fi

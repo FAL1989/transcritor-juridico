@@ -9,6 +9,7 @@ This is a Legal Transcription System (Transcritor Jurídico) - a full-stack appl
 ## Technology Stack
 
 ### Backend (Python/FastAPI)
+- Runtime: Python 3.12
 - **Framework**: FastAPI with async support
 - **Database**: PostgreSQL with SQLAlchemy (async)
 - **Transcription**: OpenAI Whisper
@@ -122,13 +123,52 @@ Base URL: `http://localhost:8000/api/v1`
 - **Supported Formats**: .mp3, .wav, .m4a, .ogg, .flac, .mp4, .avi, .mov
 - **Whisper Models**: tiny, base, small, medium, large (configured in .env)
 
+## Agents & Orchestration
+- Project-level subagents live in `.claude/agents/` with least-privilege `tools:` configured
+- Use proactively after code edits/merges; prefer parallel delegation (review + security + docs)
+- Standard output envelope (AURORA): TL;DR, Resumo, Plano, Edits, Testes, Comandos, Notas (métricas/alertas/SLO, custo)
+
+## Architecture & Implementation Details
+
+### API Proxy System
+The frontend uses Next.js API Routes (`/app/api/[...path]/route.ts`) to proxy requests to the backend:
+- **Intelligent Trailing Slash Handling**: Automatically determines if endpoints need trailing slashes based on FastAPI patterns
+- **Auth Endpoints**: `/auth/login`, `/auth/register`, `/auth/me` - NO trailing slash
+- **Collection Endpoints**: `/transcriptions/` - WITH trailing slash
+- **Resource Endpoints**: `/transcriptions/123` - NO trailing slash
+- **Content-Type Handling**: Properly handles JSON, form-urlencoded, and multipart/form-data requests
+
+### Production Deployment
+- **Frontend**: Deployed on Vercel with Next.js 14
+- **Backend**: FastAPI with HTTPS endpoint
+- **API Communication**: Frontend proxy routes handle CORS and trailing slash issues
+- **Environment Variables**: 
+  - `BACKEND_URL` (server-side) or `NEXT_PUBLIC_API_URL` (build-time)
+  - Backend uses JSON `BACKEND_CORS_ORIGINS` and optional `BACKEND_CORS_ORIGIN_REGEX`
+
+### Authentication System
+- **JWT Implementation**: Complete with access/refresh tokens
+- **Token Storage**: Secure storage in browser with automatic refresh
+- **Protected Routes**: All transcription operations require authentication
+- **CORS Configuration**: Properly configured for production domains
+
 ## Current Status
 
-The development environment is fully configured and running. Check TODO.md for the complete list of features to implement.
+**IMPLEMENTED ✅**:
+- JWT Authentication system (complete)
+- File upload functionality (working)
+- Transcription listing and management
+- Text processing (normalize, compare, export DOCX)
+- Production deployment (Vercel + HTTPS backend)
+- API proxy with intelligent routing
 
-### Priority Tasks
-1. JWT Authentication system
-2. File upload functionality
-3. Whisper AI integration
-4. Transcription editor interface
-5. Export system (PDF, DOCX, TXT)
+**IN DEVELOPMENT 🔄**:
+- Whisper AI integration
+- Real-time processing notifications
+- Advanced transcription editor
+
+### Next Priority Tasks
+1. Whisper AI integration for audio processing
+2. WebSocket/SSE for real-time progress updates
+3. Advanced transcription editor with audio sync
+4. Export system enhancements (PDF, formatted templates)
