@@ -1,13 +1,8 @@
 {
-  "headers": [
+  "rewrites": [
     {
-      "source": "/api/:path*",
-      "headers": [
-        {
-          "key": "x-forwarded-proto",
-          "value": "https"
-        }
-      ]
+      "source": "/api/(.*)",
+      "destination": "https://api.168.231.88.105.sslip.io/api/v1/$1"
     }
   ]
 }
