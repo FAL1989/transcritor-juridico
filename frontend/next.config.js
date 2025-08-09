@@ -24,14 +24,8 @@ const API_BASE = resolveApiBase();
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${API_BASE}/:path*`,
-      },
-    ];
-  },
+  // Rewrites removidos - agora controlado pelo vercel.json
+  // para evitar conflitos de precedência no edge
   env: {
     NEXT_PUBLIC_API_URL: API_BASE,
   },
